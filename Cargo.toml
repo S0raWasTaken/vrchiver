@@ -1,0 +1,9 @@
+[package]
+name = "vrchiver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dotenv = "0.15.0"
+poise = "0.6.1"
+tokio = { version = "1.41.1", features = ["rt-multi-thread", "macros"] }
