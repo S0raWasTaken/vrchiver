@@ -1,11 +1,13 @@
+use super::send_reply;
 use crate::{Context, Error};
 use poise::{
     serenity_prelude::{
         json::{from_str, Value},
-        Attachment, CreateEmbed, CreateEmbedFooter,
+        Attachment, ChannelId, CreateEmbed, CreateEmbedFooter, CreateMessage,
     },
     CreateReply,
 };
+use tokio::time::Instant;
 /*[
     {
         "name": "Hu Tao",
@@ -25,6 +27,42 @@ use poise::{
         "comment":""
     }
 ]*/
+#[allow(clippy::too_many_arguments)]
+#[poise::command(slash_command)]
+/// Submits an asset for posting
+pub async fn submit(
+    ctx: Context<'_>,
+    #[description = "The asset name"] name: String,
+    #[description = "A valid image URL"] image: String,
+    #[description = "Original source"] source: String,
+    #[description = "Which bases does this asset support?"] bases_supported: Option<String>,
+    #[description = "A password, extra info, etc"] comment: Option<String>,
+    #[description = "Direct download link"] download: String,
+    #[description = "In which channel does this asset fit?"] channel: ChannelId,
+) -> Result<(), Error> {
+    ctx.defer_ephemeral().await?;
+
+    let embed = CreateEmbed::new()
+        .image(image)
+        .title(name)
+        .description(format!(
+            "[**>Source<**]({source})\n[**>Download<**]({download})"
+        ))
+        .footer(CreateEmbedFooter::new(comment.unwrap_or_default()));
+
+    let embed = if let Some(bases) = bases_supported {
+        embed.field("Avatars:", format!("`{bases}`"), false)
+    } else {
+        embed
+    };
+
+    channel
+        .send_message(ctx.http(), CreateMessage::new().add_embed(embed))
+        .await?;
+
+    send_reply(ctx, "Done!").await?;
+    Ok(())
+}
 
 /// Starts posting the embeds in this channel, using the provided JSON file
 #[poise::command(slash_command)]
@@ -32,6 +70,7 @@ pub async fn post(
     ctx: Context<'_>,
     #[description = "JSON file in the expected structure"] json: Attachment,
 ) -> Result<(), Error> {
+    let time = Instant::now();
     let content = String::from_utf8(json.download().await?)?;
     let values: Value = from_str(content)?;
 
@@ -51,6 +90,8 @@ pub async fn post(
         })
         .await?;
     }
+
+    send_reply(ctx, &format!("```Finished in {:.2?}```", time.elapsed())).await?;
     Ok(())
 }
 
