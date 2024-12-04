@@ -8,25 +8,8 @@ use poise::{
     CreateReply,
 };
 use tokio::time::Instant;
-/*[
-    {
-        "name": "Hu Tao",
-        "img": "https://booth.pximg.net/a81c9bc6-f795-48fa-8e85-87ea0f567656/i/4175623/addcfc8c-e460-4def-9d1f-ebc666f4e7fb_base_resized.jpg",
-        "source": "https://vrc-booth.com/en/product/4175623",
-        "assetType": "Avatar",
-        "avatarName": [],
-        "comment": "",
-        "id": "REDACTED"
-    },
-    {
-        "name": "❰Hair❱ 7アバター対応 Hair_003 Hime Cut PACK",
-        "img": "https://booth.pximg.net/0f0637a8-9966-43f3-8e0b-40233300656a/i/5908294/b1adc1d7-bc57-46e7-9c01-58f95ae120ea_base_resized.jpg",
-        "source": "https://booth.pm/en/items/5908294",
-        "download": "REDACTED",
-        "avatarName": [],
-        "comment":""
-    }
-]*/
+
+// TODO: A submission queue & approval system?
 #[allow(clippy::too_many_arguments)]
 #[poise::command(slash_command)]
 /// Submits an asset for posting
@@ -95,6 +78,12 @@ pub async fn post(
     Ok(())
 }
 
+/// There's only two types of JSON objects we're working with.
+/// Those with id & assetType, which don't include a download link
+/// and those that are normal.
+///
+/// To be honest, there's no point in reading the want.json file, but whatever.
+/// I'll probably remove the second JSON object functionality in the future.
 fn build_embed(json: &Value) -> CreateEmbed {
     let name = json["name"].as_str().unwrap_or_default();
     let img = json["img"].as_str().unwrap_or_default();
@@ -124,6 +113,7 @@ fn build_embed(json: &Value) -> CreateEmbed {
             .footer(CreateEmbedFooter::new(comment))
     } else {
         // WANT
+        // TODO: get rid of this
         CreateEmbed::new()
             .image(img)
             .title(name)

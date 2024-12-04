@@ -21,6 +21,7 @@ macro_rules! error {
     }};
 }
 
+/// When a command errors, it sends the full error to the command sender, with some formatting.
 async fn on_error(error: FrameworkError<'_, (), Error>) {
     match error {
         FrameworkError::Command { error, ctx, .. } => {
