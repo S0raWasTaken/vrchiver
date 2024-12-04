@@ -25,23 +25,25 @@ pub async fn submit(
 ) -> Result<(), Error> {
     ctx.defer_ephemeral().await?;
 
-    let embed = CreateEmbed::new()
+    let mut embed = CreateEmbed::new()
         .image(image)
         .title(name)
         .description(format!(
             "[**>Source<**]({source})\n[**>Download<**]({download})"
-        ))
-        .footer(CreateEmbedFooter::new(comment.unwrap_or_default()));
+        ));
 
-    let embed = if let Some(bases) = bases_supported {
-        embed.field("Avatars:", format!("`{bases}`"), false)
-    } else {
-        embed
-    };
+    if let Some(comment) = comment {
+        embed = embed.footer(CreateEmbedFooter::new(comment));
+    }
+
+    if let Some(bases) = bases_supported {
+        embed = embed.field("Avatars:", format!("`{bases}`"), false);
+    }
 
     channel
         .send_message(ctx.http(), CreateMessage::new().add_embed(embed))
-        .await?;
+        .await
+        .map_err(|e| format!("Failed to send message:\n{e}"))?;
 
     send_reply(ctx, "Done!").await?;
     Ok(())
