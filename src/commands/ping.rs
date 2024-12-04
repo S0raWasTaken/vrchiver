@@ -1,4 +1,4 @@
-use poise::{serenity_prelude::CreateEmbed, CreateReply};
+use poise::CreateReply;
 
 use crate::{Context, Error};
 
@@ -14,15 +14,6 @@ pub async fn ping(ctx: Context<'_>) -> Result<(), Error> {
             ..Default::default()
         },
     )
-    .await?;
-
-    ctx.send(CreateReply {
-        embeds: vec![CreateEmbed::new()
-            .title("[teste](https://youtube.com)")
-            .description("[**>Source<**](https://github.com)\n[>Download<](https://youtube.com)")
-            .field("name", "Velle", true)],
-        ..Default::default()
-    })
     .await?;
     Ok(())
 }
